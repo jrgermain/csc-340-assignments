@@ -1,29 +1,37 @@
-const net = require("net");
+const Server = require("net").Server;
 const { port } = require("../config/settings");
 
-// Keep track of open connections so we can close them when the server shuts down
-const sockets = new Set();
+const server = new Server();
+const openConnections = new Set();
 
-const server = net.createServer((socket) => {
+// When the server gets a new connection, listen to it
+server.on("connection", socket => {
     // This is a function that runs every time a new client connects
-    console.log("DEBUG: New client connected ");
+    console.log("DEBUG: New client connected");
 
     // Keep track of open connections
-    sockets.add(socket);
+    openConnections.add(socket);
     socket.on("close", () => {
-        console.log("DEBUG: Client disconnected ");
-        sockets.delete(socket);
+        console.log("DEBUG: Client disconnected");
+        openConnections.delete(socket);
     });
-});
 
-// Start listening and print out a debug message
-server.listen(port, () => {
-    console.log("DEBUG: Now listening on port " + port);
+    // Handle data received
+    socket.setEncoding("utf8");
+    socket.on("data", data => {
+        // TODO: do something with the data
+        console.log(`DEBUG: Data received: "${data}"`);
+    });
 });
 
 // When the program is killed (ctrl-c), close all connections
 process.on("SIGINT", () => {
     console.log("DEBUG: Shutting down");
     server.close(); // Stop accepting new connections
-    sockets.forEach(socket => socket.destroy()); // Close existing connections
+    openConnections.forEach(socket => socket.destroy()); // Close existing connections
+});
+
+// Start listening and print out a debug message
+server.listen(port, () => {
+    console.log("DEBUG: Now listening on port " + port);
 });
