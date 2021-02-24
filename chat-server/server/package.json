@@ -4,7 +4,7 @@
   "description": "Server component for Chat Server programming assignment",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js -d"
   },
   "dependencies": {}
 }
