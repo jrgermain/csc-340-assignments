@@ -16,4 +16,8 @@ for (let i = 0; i < args.length; i++) {
     }
 }
 
+if ("port" in settings && !/^[0-9]+$/.test(settings.port)) {
+    throw new Error("Argument 'port' must be an integer");
+}
+
 module.exports = settings;
