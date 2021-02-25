@@ -1,5 +1,5 @@
 const Server = require("net").Server;
-const commands = require("./commands");
+const parseCommand = require("./commands");
 const { port, debug } = require("../config");
 
 const server = new Server();
@@ -24,33 +24,23 @@ server.on("connection", socket => {
     // Handle data received
     socket.setEncoding("utf8");
     socket.on("data", data => {
-        // Check if the command received is valid. If so, get the argument and process the command.
-        if (commands.ENTER.test(data)) {
-            // Received a valid ENTER command
-            const name = data.match(commands.ENTER)[1];
-            if (debug) {
-                console.log(`DEBUG: Valid "ENTER" command; name = "${name}"`);
-            }
-        } else if (commands.JOIN.test(data)) {
-            // Received a valid JOIN command
-            const room = data.match(commands.JOIN)[1];
-            if (debug) {
-                console.log(`DEBUG: Valid "JOIN" command; room = "${room}"`);
-            }
-        } else if (commands.TRANSMIT.test(data)) {
-            // Received a valid TRANSMIT command
-            const message = data.match(commands.TRANSMIT)[1];
-            if (debug) {
-                console.log(`DEBUG: Valid "TRANSMIT" command; message = "${message}"`);
-            }
-        } else if (commands.EXIT.test(data)) {
-            // Received a valid EXIT command
-            if (debug) {
-                console.log(`DEBUG: Valid "EXIT" command`);
-            }
-        } else {
-            // Invlaid command
+        // Check if the command received is valid. If so, process the command.
+        const command = parseCommand(data);
+        if (command == null) {
             console.error(`Invalid input: "${data}"`);
+            return;
+        }
+
+        console.log(`DEBUG: Valid "${command.name}" command; argument is "${command.argument}"`);
+        switch (command.name) {
+            case "enter":
+                break;
+            case "join":
+                break;
+            case "transmit":
+                break;
+            case "exit":
+                break;
         }
     });
 });
