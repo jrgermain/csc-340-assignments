@@ -27,11 +27,11 @@ server.on("connection", socket => {
         // Check if the command received is valid. If so, process the command.
         const command = parseCommand(data);
         if (command == null) {
-            console.error(`Invalid input: "${data}"`);
+            console.log(`Received invalid input: "${data}"`);
             return;
         }
 
-        console.log(`DEBUG: Valid "${command.name}" command; argument is "${command.argument}"`);
+        console.log("Received command: ", command);
         switch (command.name) {
             case "enter":
                 break;
