@@ -39,7 +39,7 @@ server.on("connection", socket => {
 
         const currentUserData = openConnections.get(socket);
         switch (command.name) {
-            case "enter":
+            case "ENTER":
                 currentUserData.room = "0";
                 currentUserData.name = command.argument;
                 openConnections.forEach((data, connection) => {
@@ -47,15 +47,15 @@ server.on("connection", socket => {
                         connection.write(`ENTERING ${command.argument}\n`);
                     }
                 });
-                socket.write(`ACK ${data}\n`);
+                socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
-            case "join":
+            case "JOIN":
                 // TODO (Joey)
                 break;
-            case "transmit":
+            case "TRANSMIT":
                 // TODO (Phillip)
                 break;
-            case "exit":
+            case "EXIT":
                 // TODO (Ryan)
         }
         logger.debug("Currently connected: ", Array.from(openConnections.values()));
@@ -66,7 +66,7 @@ server.on("connection", socket => {
 process.on("SIGINT", () => {
     logger.debug("Shutting down");
     server.close(); // Stop accepting new connections
-    
+
     // Close existing connections
     for (const socket of openConnections.keys()) {
         socket.destroy();

@@ -9,10 +9,10 @@
 
 // Regular expressions to test if a command is valid and, if so, what the argument provided is
 const commands = {
-    enter: /^ENTER ([A-Za-z0-9]{1,16})\n?$/,
-    join: /^JOIN ([A-Za-z0-9]{1,16})\n?$/,
-    transmit: /^TRANSMIT (.{1,1024})(?=\n|$)/,
-    exit: /^EXIT\n?$/
+    ENTER: /^ENTER ([A-Za-z0-9]{1,16})\n?$/,
+    JOIN: /^JOIN ([A-Za-z0-9]{1,16})\n?$/,
+    TRANSMIT: /^TRANSMIT (.{1,1024})(?=\n|$)/,
+    EXIT: /^EXIT\n?$/
 }
 
 // Given a string of data potentially containing a command, parse out the command (if it is valid), otherwise return null
