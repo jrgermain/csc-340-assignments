@@ -76,7 +76,15 @@ server.on("connection", socket => {
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
             case "TRANSMIT":
-                // TODO (Phillip)
+                // Broadcast message to all clients in the same room as the user
+                openConnections.forEach((data, connection) => {
+                    if (data.room === currentUserData.room) {
+                        connection.write(`${currentUserData.name}: ${command.argument}\n`);
+                    }
+                });
+
+                // Send acknowledgement back to the user
+                socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
             case "EXIT":
                 // TODO (Ryan)
