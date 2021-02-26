@@ -11,7 +11,7 @@ const { port } = require("../config");
 const parseCommand = require("./commands");
 
 const server = new Server();
-const openConnections = new Set();
+const openConnections = new Map();
 
 // When the server gets a new connection, listen to it
 server.on("connection", socket => {
@@ -19,7 +19,7 @@ server.on("connection", socket => {
     logger.debug("New client connected");
 
     // Keep track of open connections
-    openConnections.add(socket);
+    openConnections.set(socket, {});
     socket.on("close", () => {
         logger.debug("Client disconnected");
         openConnections.delete(socket);
@@ -36,19 +36,29 @@ server.on("connection", socket => {
         }
 
         logger.print("Received command: ", command);
+
+        const currentUserData = openConnections.get(socket);
         switch (command.name) {
             case "enter":
-                // TODO
+                currentUserData.room = "0";
+                currentUserData.name = command.argument;
+                openConnections.forEach((data, connection) => {
+                    if (data.room === currentUserData.room) {
+                        connection.write(`ENTERING ${command.argument}\n`);
+                    }
+                });
+                socket.write(`ACK ${data}\n`);
                 break;
             case "join":
-                // TODO
+                // TODO (Joey)
                 break;
             case "transmit":
-                // TODO
+                // TODO (Phillip)
                 break;
             case "exit":
-                // TODO
+                // TODO (Ryan)
         }
+        logger.debug("Currently connected: ", Array.from(openConnections.values()));
     });
 });
 
@@ -56,7 +66,11 @@ server.on("connection", socket => {
 process.on("SIGINT", () => {
     logger.debug("Shutting down");
     server.close(); // Stop accepting new connections
-    openConnections.forEach(socket => socket.destroy()); // Close existing connections
+    
+    // Close existing connections
+    for (const socket of openConnections.keys()) {
+        socket.destroy();
+    }
 });
 
 // Start listening and print out a debug message
