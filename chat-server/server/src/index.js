@@ -40,17 +40,40 @@ server.on("connection", socket => {
         const currentUserData = openConnections.get(socket);
         switch (command.name) {
             case "ENTER":
+                // Set user data
                 currentUserData.room = "0";
                 currentUserData.name = command.argument;
+
+                // Broadcast "entering" to clients in the same room as the user
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`ENTERING ${command.argument}\n`);
+                        connection.write(`ENTERING ${currentUserData.name}\n`);
                     }
                 });
+
+                // Send acknowledgement back to the user
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
             case "JOIN":
-                // TODO (Joey)
+                // Broadcast "exiting" to clients in the user's old room
+                openConnections.forEach((data, connection) => {
+                    if (data.room === currentUserData.room) {
+                        connection.write(`EXITING ${currentUserData.name}\n`);
+                    }
+                });
+
+                // Move user to new room
+                currentUserData.room = command.argument;
+
+                // Broadcast "entering" to clients in the user's new room
+                openConnections.forEach((data, connection) => {
+                    if (data.room === currentUserData.room) {
+                        connection.write(`ENTERING ${currentUserData.name}\n`);
+                    }
+                });
+
+                // Send acknowledgement back to the user
+                socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
             case "TRANSMIT":
                 // TODO (Phillip)
