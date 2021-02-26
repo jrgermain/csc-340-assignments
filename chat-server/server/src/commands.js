@@ -1,4 +1,13 @@
-// Regular expressions to test if a command is valid
+/**
+ * Provides a utility function for parsing data received from the client.
+ * 
+ * If the data follows the chat server protocol, a command object is returned,
+ * containing "name" and "argument" properties.
+ * 
+ * If the data does not follow the protocol, null is returned instead.
+ */
+
+// Regular expressions to test if a command is valid and, if so, what the argument provided is
 const commands = {
     enter: /^ENTER ([A-Za-z0-9]{1,16})\n?$/,
     join: /^JOIN ([A-Za-z0-9]{1,16})\n?$/,

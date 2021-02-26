@@ -1,3 +1,7 @@
+/**
+ * Parse settings from command-line arguments.
+ * Will throw an error if provided invalid arguments.
+ */
 const args = process.argv.slice(2);
 const settings = {};
 

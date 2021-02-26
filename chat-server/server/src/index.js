@@ -1,6 +1,14 @@
-const Server = require("net").Server;
+/**
+ * Chat Server
+ * Written by Joey Germain, Phil Nam, and Ryan Clark
+ * 
+ * This file is the main entry point of the server program.
+ */
+
+const { Server } = require("net");
+const logger = require("./log");
+const { port } = require("../config");
 const parseCommand = require("./commands");
-const { port, debug } = require("../config");
 
 const server = new Server();
 const openConnections = new Set();
@@ -8,16 +16,12 @@ const openConnections = new Set();
 // When the server gets a new connection, listen to it
 server.on("connection", socket => {
     // This is a function that runs every time a new client connects
-    if (debug) {
-        console.log("DEBUG: New client connected");
-    }
+    logger.debug("New client connected");
 
     // Keep track of open connections
     openConnections.add(socket);
     socket.on("close", () => {
-        if (debug) {
-            console.log("DEBUG: Client disconnected");
-        }
+        logger.debug("Client disconnected");
         openConnections.delete(socket);
     });
 
@@ -27,36 +31,35 @@ server.on("connection", socket => {
         // Check if the command received is valid. If so, process the command.
         const command = parseCommand(data);
         if (command == null) {
-            console.log(`Received invalid input: "${data}"`);
+            logger.print(`Received invalid input: "${data}"`);
             return;
         }
 
-        console.log("Received command: ", command);
+        logger.print("Received command: ", command);
         switch (command.name) {
             case "enter":
+                // TODO
                 break;
             case "join":
+                // TODO
                 break;
             case "transmit":
+                // TODO
                 break;
             case "exit":
-                break;
+                // TODO
         }
     });
 });
 
 // When the program is killed (ctrl-c), close all connections
 process.on("SIGINT", () => {
-    if (debug) {
-        console.log("DEBUG: Shutting down");
-    }
+    logger.debug("Shutting down");
     server.close(); // Stop accepting new connections
     openConnections.forEach(socket => socket.destroy()); // Close existing connections
 });
 
 // Start listening and print out a debug message
 server.listen(port, () => {
-    if (debug) {
-        console.log("DEBUG: Now listening on port " + port);
-    }
+    logger.debug("Now listening on port " + port);
 });
