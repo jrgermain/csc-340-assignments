@@ -23,6 +23,7 @@ server.on("connection", socket => {
     socket.on("close", () => {
         logger.debug("Client disconnected");
         openConnections.delete(socket);
+        logger.debug("Currently connected: ", Array.from(openConnections.values()));
     });
 
     // Handle data received
@@ -53,6 +54,7 @@ server.on("connection", socket => {
 
                 // Send acknowledgement back to the user
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
+                logger.debug("Currently connected: ", Array.from(openConnections.values()));
                 break;
             case "JOIN":
                 // Broadcast "exiting" to clients in the user's old room
@@ -74,6 +76,7 @@ server.on("connection", socket => {
 
                 // Send acknowledgement back to the user
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
+                logger.debug("Currently connected: ", Array.from(openConnections.values()));
                 break;
             case "TRANSMIT":
                 // Broadcast message to all clients in the same room as the user
@@ -81,26 +84,20 @@ server.on("connection", socket => {
                     if (data.room === currentUserData.room) {
                         connection.write(`${currentUserData.name}: ${command.argument}\n`);
                     }
-                  
                 });
 
                 // Send acknowledgement back to the user
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
-
-
-
-                case "EXIT":
-                    openConnections.forEach((data, connection) => {
-                        if (data.room === currentUserData.room) {
-                            connection.write(`EXITING ${currentUserData.name}\n`);
-                        }
-                     
-                    });
-                    socket.write(`ACK ${command.name} ${command.argument}\n`);
-                    socket.destroy();
+            case "EXIT":
+                openConnections.forEach((data, connection) => {
+                    if (data.room === currentUserData.room) {
+                        connection.write(`EXITING ${currentUserData.name}\n`);
+                    }
+                });
+                socket.write(`ACK ${command.name}\n`);
+                socket.destroy();
         }
-        logger.debug("Currently connected: ", Array.from(openConnections.values()));
     });
 });
 
