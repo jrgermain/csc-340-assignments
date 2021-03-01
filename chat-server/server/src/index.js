@@ -86,8 +86,19 @@ server.on("connection", socket => {
                 // Send acknowledgement back to the user
                 socket.write(`ACK ${command.name} ${command.argument}\n`);
                 break;
-            case "EXIT":
-                // TODO (Ryan)
+                case "EXIT":
+                    openConnections.forEach((data, connection) => {
+                        if (data.room === currentUserData.room) {
+                            connection.write(`EXITING ${currentUserData.name}\n`);
+                            socket.write(`ACK ${command.name} ${command.argument}\n`);
+                            socket.destroy();
+                            
+                         
+                          
+                            
+                        }
+                    });
+                
         }
         logger.debug("Currently connected: ", Array.from(openConnections.values()));
     });
