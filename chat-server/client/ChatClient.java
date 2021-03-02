@@ -19,19 +19,39 @@ import java.io.*;
 import java.net.*;
 
 
-public class ChatClient extends JFrame {
-    public static void main(String[] args) {
+public class ChatClient extends JFrame implements Runnable {
+    
+    public void run() {
         // Create and start up the ChatClient Frame
         ChatClient frame = new ChatClient();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(frame, 
+                    "Are you sure you want to close this window?", "Close Window?", 
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    // Insert code that will send the quit command to the server
+                    //System.out.println("HOLA AMIGO COMO ESTA?");
+                    System.exit(0);
+                }
+            }
+        });
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public static void main(String args[]) {
+        (new Thread(new ChatClient())).start();
+        
     }
 
     private JTextArea chatTextArea;
     private JTextArea sendTextArea;
     private Action nameAction;
+    private Action roomAction;
     private String hostname = "127.0.0.1";  // Default is local host
     private int port = 1518;                // Default port is 1518
     private String userName = "<UNDEFINED>";
@@ -40,6 +60,8 @@ public class ChatClient extends JFrame {
     private PrintWriter out = null;
     private BufferedReader in = null;
     private Boolean socketExists = false;
+    private Input input;
+    private Output output;
     
     /* Constructor: Sets up the initial look-and-feel */
     public ChatClient() {
@@ -85,13 +107,18 @@ public class ChatClient extends JFrame {
                         // NOTE: You will want to fix this so it actually
                         // TRANSMITS the message to the server!
                         try  {
-                            out.println(message);
+                            out.println("TRANSMIT " + message);
+
+                           // output.run(message)  //Open a thread
+
                             postMessage(in.readLine());
+
+                           // inpunt.run()
                         } catch (Exception ex) {
                             
                         }
                         
-                        postMessage("DEBUG: Transmit: " + message);
+                        //postMessage("DEBUG: Transmit: " + message);
                         sendTextArea.setText("");  // Clear out the field
                     }
                     sendTextArea.requestFocus();  // Focus back on box
@@ -116,12 +143,11 @@ public class ChatClient extends JFrame {
                     String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
                     // NOTE: This does not TRANSMIT the request to the server
                     // This is just a placeholder to display the choice.
-                    postMessage("DEBUG: User name: " + newUserName);
+                    //postMessage("DEBUG: User name: " + newUserName);
                     
                     if(socketExists){
                         try {
                             //out.println("EXITING " + username);
-                            out.println("EXIT " + userName);
                             out.println("ENTER " + newUserName);
                             changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
                         } catch (Exception ex) {
@@ -142,12 +168,43 @@ public class ChatClient extends JFrame {
         button.setAlignmentX(JButton.CENTER_ALIGNMENT);
         mainPane.add(button);
 
+        // Set up a button to get a new room name (and transmit request to the server)
+        roomAction = new AbstractAction("Set/Change Room") {
+            public void actionPerformed(ActionEvent e) {
+                // Get the new room and transmit to the server!
+                String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
+                // NOTE: This does not TRANSMIT the request to the server
+                // This is just a placeholder to display the choice.
+                //postMessage("DEBUG: Room name: " + newRoomName);
+                
+                if(socketExists){
+                    try {
+                        //out.println("EXITING " + username);
+                        out.println("Testing Room Name: " + newRoomName);
+                       // changeRoom(newRoom); // Ideally, this would be done only once the server accepts and replies back with user name
+                    } catch (Exception ex) {
+                        
+                    }
+                }
+                
+                else {
+                    
+                }
+                
+                
+            }
+        };
+    roomAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change room.");
+    button = new JButton(roomAction);
+    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    mainPane.add(button);
+
         // Setup the menubar
         setupMenuBar();
     }
 
     private void setupTextAreaSend(Action sendAction) {
-        System.err.println("DEBUG: Setting up TextAreaSend");
+        //System.err.println("DEBUG: Setting up TextAreaSend");
         // Get InputMap and ActionMap for the sendTextArea
         InputMap inputMap = sendTextArea.getInputMap();
         ActionMap actionMap = sendTextArea.getActionMap();
@@ -205,7 +262,12 @@ public class ChatClient extends JFrame {
         menuAction = new AbstractAction("Connect to Server") {
                 public void actionPerformed(ActionEvent e) {
                     try {
+
+                        //Create a new thread 
+
                         establishConnection();
+
+
                     } catch(Exception ex){
                         System.out.print(ex);
                     }
@@ -235,6 +297,10 @@ public class ChatClient extends JFrame {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         
         out.println("ENTER " + userName);
+        new Thread(new Input()).start();
+        //output = new Output();
+        input.run();
+        
         
         
     }
@@ -243,4 +309,31 @@ public class ChatClient extends JFrame {
     public synchronized void postMessage(String message) {
         chatTextArea.append(message + "\n");
     }
+
+    class Output extends Thread {
+        public void run(String message){
+
+           
+			out.println(message);
+            System.out.println("Output reached end");
+        
+        }
+    }
+
+    class Input extends Thread{
+        public void run(){
+            try {
+                while(socketExists){
+                    postMessage(in.readLine());
+                }
+                
+				
+                System.out.println("Input Reached End");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+            
+        }
+    }
+    
 }
