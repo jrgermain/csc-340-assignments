@@ -111,7 +111,7 @@ public class ChatClient extends JFrame implements Runnable {
 
                            // output.run(message)  //Open a thread
 
-                            postMessage(in.readLine());
+                            //postMessage(in.readLine());
 
                            // inpunt.run()
                         } catch (Exception ex) {
@@ -180,7 +180,7 @@ public class ChatClient extends JFrame implements Runnable {
                 if(socketExists){
                     try {
                         //out.println("EXITING " + username);
-                        out.println("Testing Room Name: " + newRoomName);
+                        out.println("JOIN " + newRoomName);
                        // changeRoom(newRoom); // Ideally, this would be done only once the server accepts and replies back with user name
                     } catch (Exception ex) {
                         
@@ -324,7 +324,33 @@ public class ChatClient extends JFrame implements Runnable {
         public void run(){
             try {
                 while(socketExists){
-                    postMessage(in.readLine());
+                    String inputString = in.readLine();
+                    switch(inputString.split(" ")[0]){
+                        case "ACK" : {
+                            switch(inputString.split(" ")[1]){
+                                case "ENTER":{
+                                    postMessage("You have entered as " + inputString.split(" ")[2] );
+                                    
+                                } break;
+                                case "TRANSMIT":{
+                                    
+                                } break;
+                                
+                            }
+                        } break;
+                        case "ENTERING":{
+                            postMessage((inputString.split(" ")[1]) + " has entered the chat");
+                        } break;
+                        case "EXITING":{
+                            postMessage((inputString.split(" ")[1]) + " has left the chat");
+                        } break;
+
+                        default: {
+                            postMessage(inputString);
+                        } break;
+                    }
+                    System.out.println();
+                    //postMessage(inputString);
                 }
                 
 				
