@@ -48,19 +48,19 @@ server.on("connection", socket => {
                 // Broadcast "entering" to clients in the same room as the user
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`ENTERING ${currentUserData.name}\n`);
+                        connection.write(`ENTERING ${currentUserData.name}`);
                     }
                 });
 
                 // Send acknowledgement back to the user
-                socket.write(`ACK ${command.name} ${command.argument}\n`);
+                socket.write(`ACK ${command.name} ${command.argument}`);
                 logger.debug("Currently connected: ", Array.from(openConnections.values()));
                 break;
             case "JOIN":
                 // Broadcast "exiting" to clients in the user's old room
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`EXITING ${currentUserData.name}\n`);
+                        connection.write(`EXITING ${currentUserData.name}`);
                     }
                 });
 
@@ -70,32 +70,32 @@ server.on("connection", socket => {
                 // Broadcast "entering" to clients in the user's new room
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`ENTERING ${currentUserData.name}\n`);
+                        connection.write(`ENTERING ${currentUserData.name}`);
                     }
                 });
 
                 // Send acknowledgement back to the user
-                socket.write(`ACK ${command.name} ${command.argument}\n`);
+                socket.write(`ACK ${command.name} ${command.argument}`);
                 logger.debug("Currently connected: ", Array.from(openConnections.values()));
                 break;
             case "TRANSMIT":
                 // Broadcast message to all clients in the same room as the user
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`${currentUserData.name}: ${command.argument}\n`);
+                        connection.write(`${currentUserData.name}: ${command.argument}`);
                     }
                 });
 
                 // Send acknowledgement back to the user
-                socket.write(`ACK ${command.name} ${command.argument}\n`);
+                socket.write(`ACK ${command.name} ${command.argument}`);
                 break;
             case "EXIT":
                 openConnections.forEach((data, connection) => {
                     if (data.room === currentUserData.room) {
-                        connection.write(`EXITING ${currentUserData.name}\n`);
+                        connection.write(`EXITING ${currentUserData.name}`);
                     }
                 });
-                socket.write(`ACK ${command.name}\n`);
+                socket.write(`ACK ${command.name}`);
                 socket.destroy();
         }
     });
