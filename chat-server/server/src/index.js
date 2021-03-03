@@ -88,7 +88,9 @@ server.on("connection", (socket) => {
         // Broadcast message to all clients in the same room as the user
         openConnections.forEach((data, connection) => {
           if (data.room === currentUserData.room) {
-            connection.write(`${currentUserData.name}: ${command.argument}\n`);
+            connection.write(
+              `NEWMESSAGE ${currentUserData.name} ${command.argument}\n`
+            );
           }
         });
 

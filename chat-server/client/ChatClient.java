@@ -33,6 +33,7 @@ public class ChatClient extends JFrame implements Runnable {
                     "Are you sure you want to close this window?", "Close Window?", 
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    frame.out.println("EXIT");
                     // Insert code that will send the quit command to the server
                     //System.out.println("HOLA AMIGO COMO ESTA?");
                     System.exit(0);
@@ -54,7 +55,7 @@ public class ChatClient extends JFrame implements Runnable {
     private Action roomAction;
     private String hostname = "127.0.0.1";  // Default is local host
     private int port = 1518;                // Default port is 1518
-    private String userName = "<UNDEFINED>";
+    private String userName = "Default";
 
     private Socket socket = null;
     private PrintWriter out = null;
@@ -162,7 +163,7 @@ public class ChatClient extends JFrame implements Runnable {
                     
                 }
             };
-        changeUserName("<UNDEFINED>");
+        changeUserName("Default");
         nameAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change user name.");
         button = new JButton(nameAction);
         button.setAlignmentX(JButton.CENTER_ALIGNMENT);
@@ -325,7 +326,8 @@ public class ChatClient extends JFrame implements Runnable {
             try {
                 while(socketExists){
                     String inputString = in.readLine();
-                    switch(inputString.split(" ")[0]){
+                    String[] inputStringArray = inputString.split(" ");
+                    switch(inputStringArray[0]){
                         case "ACK" : {
                             switch(inputString.split(" ")[1]){
                                 case "ENTER":{
@@ -335,6 +337,9 @@ public class ChatClient extends JFrame implements Runnable {
                                 case "TRANSMIT":{
                                     
                                 } break;
+                                case "JOIN": {
+                                    postMessage("You have entered room: " + inputString.split(" ")[2]);
+                                }
                                 
                             }
                         } break;
@@ -344,6 +349,15 @@ public class ChatClient extends JFrame implements Runnable {
                         case "EXITING":{
                             postMessage((inputString.split(" ")[1]) + " has left the chat");
                         } break;
+
+                        case "NEWMESSAGE":{
+                            String name = inputStringArray[1];
+                            String message = name + ": ";
+                            for(int i = 2; i<inputStringArray.length;i++){
+                                message+=inputStringArray[i] + " ";
+                            }
+                            postMessage(message);
+                        }break;
 
                         default: {
                             postMessage(inputString);
