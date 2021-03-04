@@ -103,12 +103,22 @@ public class ChatClient extends JFrame implements Runnable {
                     // Send the message in the text area (if anything)
                     // and clear the text area
                     String message = sendTextArea.getText();
+                    String[] messageLines = message.split("\n");
+                    
                     if (message != null && message != "") {
                         // There is something to transmit
                         // NOTE: You will want to fix this so it actually
                         // TRANSMITS the message to the server!
                         try  {
-                            out.println("TRANSMIT " + message);
+                            for (String string : messageLines) {
+                                
+                                System.out.println(string);
+                                out.println("TRANSMIT " + string);
+                                Thread.sleep(5);
+                                
+                                
+                            }
+                           
 
                            // output.run(message)  //Open a thread
 
@@ -299,8 +309,7 @@ public class ChatClient extends JFrame implements Runnable {
         
         out.println("ENTER " + userName);
         new Thread(new Input()).start();
-        //output = new Output();
-        input.run();
+       
         
         
         
