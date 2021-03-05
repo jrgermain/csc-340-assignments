@@ -12,6 +12,7 @@
  * THIS IS JUST A FRAMEWORK so actual communication is not yet 
  * established.
  ******/
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -19,7 +20,7 @@ import java.io.*;
 import java.net.*;
 
 public class ChatClient extends JFrame implements Runnable {
-    
+
     public void run() {
         // Create and start up the ChatClient Frame
         ChatClient frame = new ChatClient();
@@ -29,13 +30,13 @@ public class ChatClient extends JFrame implements Runnable {
             //Overrides close button to send an exit message to server when client is closed
             @Override
             public void windowClosing(WindowEvent windowEvent) {
-                if (JOptionPane.showConfirmDialog(frame, 
-                    "Are you sure you want to close this window?", "Close Window?", 
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-                        //Send exit message to server
-                        frame.out.println("EXIT");
-                        System.exit(0);
+                if (JOptionPane.showConfirmDialog(frame,
+                        "Are you sure you want to close this window?", "Close Window?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    //Send exit message to server
+                    frame.out.println("EXIT");
+                    System.exit(0);
                 }
             }
         });
@@ -44,7 +45,7 @@ public class ChatClient extends JFrame implements Runnable {
     }
 
     public static void main(String args[]) {
-        (new Thread(new ChatClient())).start();   
+        (new Thread(new ChatClient())).start();
     }
 
     private JTextArea chatTextArea;
@@ -60,12 +61,12 @@ public class ChatClient extends JFrame implements Runnable {
     private BufferedReader in = null;
     private Boolean socketExists = false;
     private Input input;
-    
+
     /* Constructor: Sets up the initial look-and-feel */
     public ChatClient() {
         JLabel label;  // Temporary variable for a label
         JButton button; // Temporary variable for a button
-        
+
         // Set up the initial size and layout of the frame
         // For this we will keep it to a simple BoxLayout
         setLocation(100, 100);
@@ -74,11 +75,11 @@ public class ChatClient extends JFrame implements Runnable {
         Container mainPane = getContentPane();
         mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
         mainPane.setPreferredSize(new Dimension(1000, 500));
-        
+
         // Set up the text area for receiving chat messages
         chatTextArea = new JTextArea(30, 80);
         chatTextArea.setEditable(false);
-        
+
         JScrollPane scrollPane = new JScrollPane(chatTextArea);
         label = new JLabel("Chat Messages", JLabel.CENTER);
         label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
@@ -103,15 +104,15 @@ public class ChatClient extends JFrame implements Runnable {
                 if (message != null && !message.isEmpty()) {
                     // There is something to transmit
                     String[] messageLines = message.split("\n");
-                    try  {
+                    try {
                         for (String string : messageLines) {
                             System.out.println(string);
                             out.println("TRANSMIT " + string);
                             Thread.sleep(5);
                         }
                     } catch (Exception ex) {
-                        
-                    }                        
+
+                    }
                 }
                 //postMessage("DEBUG: Transmit: " + message);
                 sendTextArea.setText("");  // Clear out the field
@@ -120,68 +121,70 @@ public class ChatClient extends JFrame implements Runnable {
         }
     };
     
-        sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
+    sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
 
-        // ALT+ENTER will automatically trigger this button
-        sendAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_ENTER);
-        
-        button = new JButton(sendAction);
-        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-        mainPane.add(button);
+    // ALT+ENTER will automatically trigger this button
+    sendAction.putValue(Action.MNEMONIC_KEY,KeyEvent.VK_ENTER);
 
-        // Set up Ctrl-Enter in JTextArea as a send option as well
-        setupTextAreaSend(sendAction);
-        
-        // Set up a button to get a new user name (and transmit request to the server)
-        nameAction = new AbstractAction("Set/Change User Name") {
-            public void actionPerformed(ActionEvent e) {
-                // Get the new user name and transmit to the server!
-                String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
-                //postMessage("DEBUG: User name: " + newUserName);
-                
-                if (socketExists) {
-                    try {
-                        //out.println("EXITING " + username);
-                        out.println("ENTER " + newUserName);
-                        changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
-                    } catch (Exception ex) {
-                        
-                    }
-                } else {
-                    changeUserName(newUserName);
+    button = new JButton(sendAction);
+    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    mainPane.add(button);
+
+    // Set up Ctrl-Enter in JTextArea as a send option as well
+    setupTextAreaSend(sendAction);
+
+    // Set up a button to get a new user name (and transmit request to the server)
+    nameAction = new AbstractAction("Set/Change User Name") {
+        public void actionPerformed(ActionEvent e) {
+            // Get the new user name and transmit to the server!
+            String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
+            //postMessage("DEBUG: User name: " + newUserName);
+
+            if (socketExists) {
+                try {
+                    //out.println("EXITING " + username);
+                    out.println("ENTER " + newUserName);
+                    changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
+                } catch (Exception ex) {
+
+                }
+            } else {
+                changeUserName(newUserName);
+            }
+        }
+    };
+    
+    // changeUserName("Default"); //For debugging purposes set automatically to default
+    nameAction.putValue(Action.SHORT_DESCRIPTION,"Push this to change user name.");
+    button = new JButton(nameAction);
+    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    mainPane.add(button);
+
+    // Set up a button to get a new room name (and transmit request to the server)
+    roomAction = new AbstractAction("Set/Change Room") {
+        public void actionPerformed(ActionEvent e) {
+            // Get the new room and transmit to the server!
+            String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
+            //postMessage("DEBUG: Room name: " + newRoomName);
+
+            if (socketExists) {
+                try {
+                    out.println("JOIN " + newRoomName);
+                } catch (Exception ex) {
+
                 }
             }
-        };
-        // changeUserName("Default"); //For debugging purposes set automatically to default
-        nameAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change user name.");
-        button = new JButton(nameAction);
-        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-        mainPane.add(button);
+        }
+    };
+    
+    roomAction.putValue(Action.SHORT_DESCRIPTION,"Push this to change room.");
+    button = new JButton(roomAction);
+    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    mainPane.add(button);
 
-        // Set up a button to get a new room name (and transmit request to the server)
-        roomAction = new AbstractAction("Set/Change Room") {
-            public void actionPerformed(ActionEvent e) {
-                // Get the new room and transmit to the server!
-                String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
-                //postMessage("DEBUG: Room name: " + newRoomName);
-                
-                if (socketExists) {
-                    try {
-                        out.println("JOIN " + newRoomName);
-                    } catch (Exception ex) {  
-                        
-                    }
-                }
-            }
-        };
-        roomAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change room.");
-        button = new JButton(roomAction);
-        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-        mainPane.add(button);
-
-        // Setup the menubar
-        setupMenuBar();
-    }
+    // Setup the menubar
+    setupMenuBar();
+}
 
     private void setupTextAreaSend(Action sendAction) {
         //System.err.println("DEBUG: Setting up TextAreaSend");
@@ -192,11 +195,11 @@ public class ChatClient extends JFrame implements Runnable {
         // Get the key used to send a message (for us, CTRL+ENTER)
         KeyStroke sendKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK);
         inputMap.put(sendKeyStroke, "SendText");
-        
+
         // Add the send action for this key to the Text Area's ActionMap
         actionMap.put("SendText", sendAction);
     }
-    
+
     private void setupMenuBar() {
         JMenuBar mbar = new JMenuBar();
         JMenu menu;
@@ -236,7 +239,7 @@ public class ChatClient extends JFrame implements Runnable {
         };
         menuAction.putValue(Action.SHORT_DESCRIPTION, "Change server PORT.");
         menuItem = new JMenuItem(menuAction);
-        menu.add(menuItem);        
+        menu.add(menuItem);
 
         // Menu item to create a connection
         menuAction = new AbstractAction("Connect to Server") {
@@ -244,14 +247,14 @@ public class ChatClient extends JFrame implements Runnable {
                 try {
                     // Create a new thread 
                     establishConnection();
-                } catch(Exception ex){
+                } catch (Exception ex) {
                     System.out.print(ex);
                 }
             }
         };
         menuAction.putValue(Action.SHORT_DESCRIPTION, "Change server PORT.");
         menuItem = new JMenuItem(menuAction);
-        menu.add(menuItem);        
+        menu.add(menuItem);
 
         mbar.add(menu);
         setJMenuBar(mbar);
@@ -264,14 +267,14 @@ public class ChatClient extends JFrame implements Runnable {
     }
 
     public void establishConnection() throws Exception {
-        socket = new Socket(hostname,port);
+        socket = new Socket(hostname, port);
         socketExists = true;
         System.out.println("Connected. Communicating from port " +
                 socket.getLocalPort() + " to port " +
                 socket.getPort() + ".");
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        
+
         out.println("ENTER " + userName);
         new Thread(new Input()).start();
         input.run();
@@ -282,58 +285,60 @@ public class ChatClient extends JFrame implements Runnable {
         chatTextArea.append(message + "\n");
     }
 
-    class Input extends Thread{
-        public void run(){
-            try {
-                while(socketExists){
-                    String inputString = in.readLine();
-                    String[] inputStringArray = inputString.split(" ");
-                    switch(inputStringArray[0]){
-                        case "ACK" : {
-                            switch(inputString.split(" ")[1]){
-                                case "ENTER":{
-                                    postMessage("You have entered as " + inputString.split(" ")[2] );
-                                    
-                                } break;
-                                case "TRANSMIT":{
-                                    
-                                } break;
-                                case "JOIN": {
-                                    postMessage("You have entered room: " + inputString.split(" ")[2]);
-                                }
-                                
+class Input extends Thread {
+    public void run() {
+        try {
+            while (socketExists) {
+                String inputString = in.readLine();
+                String[] inputStringArray = inputString.split(" ");
+                switch (inputStringArray[0]) {
+                    case "ACK": {
+                        switch (inputString.split(" ")[1]) {
+                            case "ENTER": {
+                                postMessage("You have entered as " + inputString.split(" ")[2]);
                             }
-                        } break;
-                        case "ENTERING":{
-                            postMessage((inputString.split(" ")[1]) + " has entered the chat");
-                        } break;
-                        case "EXITING":{
-                            postMessage((inputString.split(" ")[1]) + " has left the chat");
-                        } break;
-
-                        case "NEWMESSAGE":{
-                            String name = inputStringArray[1];
-                            String message = name + ": ";
-                            for(int i = 2; i<inputStringArray.length;i++){
-                                message+=inputStringArray[i] + " ";
+                            break;
+                            case "TRANSMIT": {
                             }
-                            postMessage(message);
-                        }break;
-
-                        default: {
-                            postMessage(inputString);
-                        } break;
+                            break;
+                            case "JOIN": {
+                                postMessage("You have entered room: " + inputString.split(" ")[2]);
+                            }
+                        }
                     }
-                    System.out.println();
-                    //postMessage(inputString);
+                    break;
+                    case "ENTERING": {
+                        postMessage((inputString.split(" ")[1]) + " has entered the chat");
+                    }
+                    break;
+                    case "EXITING": {
+                        postMessage((inputString.split(" ")[1]) + " has left the chat");
+                    }
+                    break;
+                    case "NEWMESSAGE": {
+                        String name = inputStringArray[1];
+                        String message = name + ": ";
+                        for (int i = 2; i < inputStringArray.length; i++) {
+                            message += inputStringArray[i] + " ";
+                        }
+                        postMessage(message);
+                    }
+                    break;
+                    default: {
+                        postMessage(inputString);
+                    }
+                    break;
                 }
-                
-                System.out.println("Input Reached End");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-            
+                System.out.println();
+                //postMessage(inputString);
+            }
+
+            System.out.println("Input Reached End");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
+}
     
 }
