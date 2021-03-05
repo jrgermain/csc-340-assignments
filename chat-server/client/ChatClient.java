@@ -9,8 +9,6 @@
  *    An input textbox for entering in messages to send
  *    A "send" button to send the current textbox material.
  *
- * THIS IS JUST A FRAMEWORK so actual communication is not yet 
- * established.
  ******/
 
 import javax.swing.*;
@@ -54,7 +52,7 @@ public class ChatClient extends JFrame implements Runnable {
     private Action roomAction;
     private String hostname = "127.0.0.1";  // Default is local host
     private int port = 1518;                // Default port is 1518
-    private String userName = "Default";
+    private String userName = "Default";    // Default username is "Default" to prevent sending invalid name
 
     private Socket socket = null;
     private PrintWriter out = null;
@@ -104,10 +102,12 @@ public class ChatClient extends JFrame implements Runnable {
                 if (message != null && !message.isEmpty()) {
                     // There is something to transmit
                     String[] messageLines = message.split("\n");
+                    //Splits the lines into separate strings
                     try {
+                        //Sends each string in the array to the server as a separate message
                         for (String string : messageLines) {
-                            System.out.println(string);
                             out.println("TRANSMIT " + string);
+                            //Pauses execution to prevent server from being overloaded with requests
                             Thread.sleep(5);
                         }
                     } catch (Exception ex) {
@@ -137,17 +137,15 @@ public class ChatClient extends JFrame implements Runnable {
             public void actionPerformed(ActionEvent e) {
                 // Get the new user name and transmit to the server!
                 String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
-                //postMessage("DEBUG: User name: " + newUserName);
-
                 if (socketExists) {
                     try {
-                        //out.println("EXITING " + username);
+                        //Sends request to server set username as the string entered
                         out.println("ENTER " + newUserName);
-                        changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
                     } catch (Exception ex) {
 
                     }
                 } else {
+                    //Allows user to change the username to be sent to server before attempting to connect
                     changeUserName(newUserName);
                 }
             }
@@ -165,9 +163,9 @@ public class ChatClient extends JFrame implements Runnable {
                 // Get the new room and transmit to the server!
                 String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
                 //postMessage("DEBUG: Room name: " + newRoomName);
-
-                if (socketExists) {
+                if (socketExists) { 
                     try {
+                        //Sends room request to server
                         out.println("JOIN " + newRoomName);
                     } catch (Exception ex) {
 
@@ -244,7 +242,7 @@ public class ChatClient extends JFrame implements Runnable {
         menuAction = new AbstractAction("Connect to Server") {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    // Create a new thread 
+                    // Attempts to establish a conection with the server
                     establishConnection();
                 } catch (Exception ex) {
                     System.out.print(ex);
@@ -265,18 +263,19 @@ public class ChatClient extends JFrame implements Runnable {
         nameAction.putValue(Action.NAME, "User Name: " + userName);
     }
 
+    // Creates a new socket and connects the client to the port (1518 in our case)
     public void establishConnection() throws Exception {
         socket = new Socket(hostname, port);
+        //Used to check if connection exists by other functions
         socketExists = true;
         System.out.println("Connected. Communicating from port " +
                 socket.getLocalPort() + " to port " +
                 socket.getPort() + ".");
-        out = new PrintWriter(socket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true); // Passes information to the server
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Information from the server
 
         out.println("ENTER " + userName);
-        new Thread(new Input()).start();
-        input.run();
+        new Thread(new Input()).start(); // The thread listens for incoming commands
     }
 
     // Post a message on the main Chat Text Area (with a new line)
@@ -284,45 +283,59 @@ public class ChatClient extends JFrame implements Runnable {
         chatTextArea.append(message + "\n");
     }
 
+    /**
+    * This class is responsible for creating a new thread that listens for input
+    * A thread was used to prevent blocking operation from blocking UI functions
+    **/
     class Input extends Thread {
         public void run() {
             try {
                 while (socketExists) {
-                    String inputString = in.readLine();
-                    String[] inputStringArray = inputString.split(" ");
+                    String inputString = in.readLine(); // Listens for input coming from the server (Line 277)
+                    String[] inputStringArray = inputString.split(" "); //Splits string into array for parsing
                     switch (inputStringArray[0]) {
                         case "ACK": {
+                            // The split string is parsed based on the command from the client
                             switch (inputString.split(" ")[1]) {
+                                // Client receives an acknowledgement from the server in response to entrance / name change
                                 case "ENTER": {
+                                    changeUserName(inputString.split(" ")[2]); 
                                     postMessage("You have entered as " + inputString.split(" ")[2]);
                                 }
                                 break;
+                                // Client receives an acknowledgement from the server in response to sending a message
                                 case "TRANSMIT": {
                                 }
                                 break;
+                                // Client recieves an acknowlegement from the server in response to a room change
                                 case "JOIN": {
                                     postMessage("You have entered room: " + inputString.split(" ")[2]);
                                 }
                             }
                         }
                         break;
+                        //Responds to a new user entering the room 
                         case "ENTERING": {
                             postMessage((inputString.split(" ")[1]) + " has entered the chat");
                         }
                         break;
+                        //Responds to a user exiting the room
                         case "EXITING": {
                             postMessage((inputString.split(" ")[1]) + " has left the chat");
                         }
                         break;
+                        //Responds to a message sent from another user
                         case "NEWMESSAGE": {
                             String name = inputStringArray[1];
                             String message = name + ": ";
+                            // Puts string back together for displaying without the server command text
                             for (int i = 2; i < inputStringArray.length; i++) {
                                 message += inputStringArray[i] + " ";
                             }
                             postMessage(message);
                         }
                         break;
+                        //Post any unrecognized server command as text in the chat window
                         default: {
                             postMessage(inputString);
                         }
@@ -332,7 +345,6 @@ public class ChatClient extends JFrame implements Runnable {
                     //postMessage(inputString);
                 }
 
-                System.out.println("Input Reached End");
             } catch (IOException e) {
                 e.printStackTrace();
             }
