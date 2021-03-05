@@ -101,19 +101,25 @@ public class ChatClient extends JFrame implements Runnable {
                 // and clear the text area
                 String message = sendTextArea.getText();
                 if (message != null && !message.isEmpty()) {
-                    // TRANSMITS the message to the server!
+                    // There is something to transmit
+                    String[] messageLines = message.split("\n");
                     try  {
-                        out.println("TRANSMIT " + message);
+                        for (String string : messageLines) {
+                            System.out.println(string);
+                            out.println("TRANSMIT " + string);
+                            Thread.sleep(5);
+                        }
                     } catch (Exception ex) {
                         
-                    }
-                    
-                    //postMessage("DEBUG: Transmit: " + message);
-                    sendTextArea.setText("");  // Clear out the field
+                    }                        
                 }
-                sendTextArea.requestFocus();  // Focus back on box
+                //postMessage("DEBUG: Transmit: " + message);
+                sendTextArea.setText("");  // Clear out the field
             }
-        };
+            sendTextArea.requestFocus();  // Focus back on box
+        }
+    };
+    
         sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
 
         // ALT+ENTER will automatically trigger this button
