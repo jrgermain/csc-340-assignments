@@ -21,7 +21,7 @@ server.on("connection", (socket) => {
     // Keep track of open connections
     openConnections.set(socket, {});
     socket.on("close", () => {
-        logger.debug("Client disconnected");
+        loggoer.debug("Client disconnected");
         openConnections.delete(socket);
         logger.debug("Currently connected: ", Array.from(openConnections.values()));
     });

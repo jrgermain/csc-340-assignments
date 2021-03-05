@@ -1,7 +1,7 @@
 /******
  * ChatClient
  * Author: Christian Duncan 
- * Updated by: ...
+ * Updated by: Kevin Sangurima, Brian Carballo, James Jacobson
  *
  * This code provides a basic GUI ChatClient.
  * It is a single frame made of 3 parts:
@@ -18,7 +18,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 
-
 public class ChatClient extends JFrame implements Runnable {
     
     public void run() {
@@ -26,17 +25,17 @@ public class ChatClient extends JFrame implements Runnable {
         ChatClient frame = new ChatClient();
 
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+        frame.addWindowListener(new WindowAdapter() {
+            //Overrides close button to send an exit message to server when client is closed
             @Override
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            public void windowClosing(WindowEvent windowEvent) {
                 if (JOptionPane.showConfirmDialog(frame, 
                     "Are you sure you want to close this window?", "Close Window?", 
                     JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-                    frame.out.println("EXIT");
-                    // Insert code that will send the quit command to the server
-                    //System.out.println("HOLA AMIGO COMO ESTA?");
-                    System.exit(0);
+                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                        //Send exit message to server
+                        frame.out.println("EXIT");
+                        System.exit(0);
                 }
             }
         });
@@ -45,8 +44,7 @@ public class ChatClient extends JFrame implements Runnable {
     }
 
     public static void main(String args[]) {
-        (new Thread(new ChatClient())).start();
-        
+        (new Thread(new ChatClient())).start();   
     }
 
     private JTextArea chatTextArea;
@@ -62,7 +60,6 @@ public class ChatClient extends JFrame implements Runnable {
     private BufferedReader in = null;
     private Boolean socketExists = false;
     private Input input;
-    private Output output;
     
     /* Constructor: Sets up the initial look-and-feel */
     public ChatClient() {
@@ -99,32 +96,24 @@ public class ChatClient extends JFrame implements Runnable {
 
         // Set up a button to "send" the chat message
         Action sendAction = new AbstractAction("Send") {
-                public void actionPerformed(ActionEvent e) {
-                    // Send the message in the text area (if anything)
-                    // and clear the text area
-                    String message = sendTextArea.getText();
-                    if (message != null && message != "") {
-                        // There is something to transmit
-                        // NOTE: You will want to fix this so it actually
-                        // TRANSMITS the message to the server!
-                        try  {
-                            out.println("TRANSMIT " + message);
-
-                           // output.run(message)  //Open a thread
-
-                            //postMessage(in.readLine());
-
-                           // inpunt.run()
-                        } catch (Exception ex) {
-                            
-                        }
+            public void actionPerformed(ActionEvent e) {
+                // Send the message in the text area (if anything)
+                // and clear the text area
+                String message = sendTextArea.getText();
+                if (message != null && !message.isEmpty()) {
+                    // TRANSMITS the message to the server!
+                    try  {
+                        out.println("TRANSMIT " + message);
+                    } catch (Exception ex) {
                         
-                        //postMessage("DEBUG: Transmit: " + message);
-                        sendTextArea.setText("");  // Clear out the field
                     }
-                    sendTextArea.requestFocus();  // Focus back on box
+                    
+                    //postMessage("DEBUG: Transmit: " + message);
+                    sendTextArea.setText("");  // Clear out the field
                 }
-            };
+                sendTextArea.requestFocus();  // Focus back on box
+            }
+        };
         sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
 
         // ALT+ENTER will automatically trigger this button
@@ -139,31 +128,25 @@ public class ChatClient extends JFrame implements Runnable {
         
         // Set up a button to get a new user name (and transmit request to the server)
         nameAction = new AbstractAction("Set/Change User Name") {
-                public void actionPerformed(ActionEvent e) {
-                    // Get the new user name and transmit to the server!
-                    String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
-                    // NOTE: This does not TRANSMIT the request to the server
-                    // This is just a placeholder to display the choice.
-                    //postMessage("DEBUG: User name: " + newUserName);
-                    
-                    if(socketExists){
-                        try {
-                            //out.println("EXITING " + username);
-                            out.println("ENTER " + newUserName);
-                            changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
-                        } catch (Exception ex) {
-                            
-                        }
+            public void actionPerformed(ActionEvent e) {
+                // Get the new user name and transmit to the server!
+                String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
+                //postMessage("DEBUG: User name: " + newUserName);
+                
+                if (socketExists) {
+                    try {
+                        //out.println("EXITING " + username);
+                        out.println("ENTER " + newUserName);
+                        changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
+                    } catch (Exception ex) {
+                        
                     }
-                    
-                    else {
-                        changeUserName(newUserName);
-                    }
-                    
-                    
+                } else {
+                    changeUserName(newUserName);
                 }
-            };
-        changeUserName("Default");
+            }
+        };
+        // changeUserName("Default"); //For debugging purposes set automatically to default
         nameAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change user name.");
         button = new JButton(nameAction);
         button.setAlignmentX(JButton.CENTER_ALIGNMENT);
@@ -174,31 +157,21 @@ public class ChatClient extends JFrame implements Runnable {
             public void actionPerformed(ActionEvent e) {
                 // Get the new room and transmit to the server!
                 String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
-                // NOTE: This does not TRANSMIT the request to the server
-                // This is just a placeholder to display the choice.
                 //postMessage("DEBUG: Room name: " + newRoomName);
                 
-                if(socketExists){
+                if (socketExists) {
                     try {
-                        //out.println("EXITING " + username);
                         out.println("JOIN " + newRoomName);
-                       // changeRoom(newRoom); // Ideally, this would be done only once the server accepts and replies back with user name
-                    } catch (Exception ex) {
+                    } catch (Exception ex) {  
                         
                     }
                 }
-                
-                else {
-                    
-                }
-                
-                
             }
         };
-    roomAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change room.");
-    button = new JButton(roomAction);
-    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    mainPane.add(button);
+        roomAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change room.");
+        button = new JButton(roomAction);
+        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        mainPane.add(button);
 
         // Setup the menubar
         setupMenuBar();
@@ -227,53 +200,49 @@ public class ChatClient extends JFrame implements Runnable {
 
         // Menu item to change server IP address (or hostname really)
         menuAction = new AbstractAction("Change Server IP") {
-                public void actionPerformed(ActionEvent e) {
-                    String newHostName = JOptionPane.showInputDialog("Please enter a server IP/Hostname.\nThis only takes effect after the next connection attempt.\nCurrent server address: " + hostname);
-                    if (newHostName != null && newHostName.length() > 0)
-                        hostname = newHostName;
-                }
-            };
+            public void actionPerformed(ActionEvent e) {
+                String newHostName = JOptionPane.showInputDialog("Please enter a server IP/Hostname.\nThis only takes effect after the next connection attempt.\nCurrent server address: " + hostname);
+                if (newHostName != null && newHostName.length() > 0)
+                    hostname = newHostName;
+            }
+        };
         menuAction.putValue(Action.SHORT_DESCRIPTION, "Change server IP address.");
         menuItem = new JMenuItem(menuAction);
         menu.add(menuItem);
 
         // Menu item to change the port to use
         menuAction = new AbstractAction("Change Server PORT") {
-                public void actionPerformed(ActionEvent e) {
-                    String portName = JOptionPane.showInputDialog("Please enter a server PORT.\nThis only takes effect after the next connection attempt.\nCurrent port: " + port);
-                    if (portName != null && portName.length() > 0) {
-                        try {
-                            int p = Integer.parseInt(portName);
-                            if (p < 0 || p > 65535) {
-                                JOptionPane.showMessageDialog(null, "The port [" + portName + "] must be in the range 0 to 65535.", "Invalid Port Number", JOptionPane.ERROR_MESSAGE);
-                            } else {
-                                port = p;  // Valid.  Update the port
-                            }
-                        } catch (NumberFormatException ignore) {
-                            JOptionPane.showMessageDialog(null, "The port [" + portName + "] must be an integer.", "Number Format Error", JOptionPane.ERROR_MESSAGE);
+            public void actionPerformed(ActionEvent e) {
+                String portName = JOptionPane.showInputDialog("Please enter a server PORT.\nThis only takes effect after the next connection attempt.\nCurrent port: " + port);
+                if (portName != null && portName.length() > 0) {
+                    try {
+                        int p = Integer.parseInt(portName);
+                        if (p < 0 || p > 65535) {
+                            JOptionPane.showMessageDialog(null, "The port [" + portName + "] must be in the range 0 to 65535.", "Invalid Port Number", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            port = p;  // Valid.  Update the port
                         }
+                    } catch (NumberFormatException ignore) {
+                        JOptionPane.showMessageDialog(null, "The port [" + portName + "] must be an integer.", "Number Format Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-            };
+            }
+        };
         menuAction.putValue(Action.SHORT_DESCRIPTION, "Change server PORT.");
         menuItem = new JMenuItem(menuAction);
         menu.add(menuItem);        
 
         // Menu item to create a connection
         menuAction = new AbstractAction("Connect to Server") {
-                public void actionPerformed(ActionEvent e) {
-                    try {
-
-                        //Create a new thread 
-
-                        establishConnection();
-
-
-                    } catch(Exception ex){
-                        System.out.print(ex);
-                    }
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    // Create a new thread 
+                    establishConnection();
+                } catch(Exception ex){
+                    System.out.print(ex);
                 }
-            };
+            }
+        };
         menuAction.putValue(Action.SHORT_DESCRIPTION, "Change server PORT.");
         menuItem = new JMenuItem(menuAction);
         menu.add(menuItem);        
@@ -299,26 +268,12 @@ public class ChatClient extends JFrame implements Runnable {
         
         out.println("ENTER " + userName);
         new Thread(new Input()).start();
-        //output = new Output();
         input.run();
-        
-        
-        
     }
 
     // Post a message on the main Chat Text Area (with a new line)
     public synchronized void postMessage(String message) {
         chatTextArea.append(message + "\n");
-    }
-
-    class Output extends Thread {
-        public void run(String message){
-
-           
-			out.println(message);
-            System.out.println("Output reached end");
-        
-        }
     }
 
     class Input extends Thread{
@@ -367,7 +322,6 @@ public class ChatClient extends JFrame implements Runnable {
                     //postMessage(inputString);
                 }
                 
-				
                 System.out.println("Input Reached End");
 			} catch (IOException e) {
 				e.printStackTrace();
