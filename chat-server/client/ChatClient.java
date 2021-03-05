@@ -116,75 +116,74 @@ public class ChatClient extends JFrame implements Runnable {
                 }
                 //postMessage("DEBUG: Transmit: " + message);
                 sendTextArea.setText("");  // Clear out the field
+                sendTextArea.requestFocus();  // Focus back on box
             }
-            sendTextArea.requestFocus();  // Focus back on box
-        }
-    };
-    
-    sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
+        };
 
-    // ALT+ENTER will automatically trigger this button
-    sendAction.putValue(Action.MNEMONIC_KEY,KeyEvent.VK_ENTER);
+        sendAction.putValue(Action.SHORT_DESCRIPTION, "Push this to transmit message to server.");
 
-    button = new JButton(sendAction);
-    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    mainPane.add(button);
+        // ALT+ENTER will automatically trigger this button
+        sendAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_ENTER);
 
-    // Set up Ctrl-Enter in JTextArea as a send option as well
-    setupTextAreaSend(sendAction);
+        button = new JButton(sendAction);
+        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        mainPane.add(button);
 
-    // Set up a button to get a new user name (and transmit request to the server)
-    nameAction = new AbstractAction("Set/Change User Name") {
-        public void actionPerformed(ActionEvent e) {
-            // Get the new user name and transmit to the server!
-            String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
-            //postMessage("DEBUG: User name: " + newUserName);
+        // Set up Ctrl-Enter in JTextArea as a send option as well
+        setupTextAreaSend(sendAction);
 
-            if (socketExists) {
-                try {
-                    //out.println("EXITING " + username);
-                    out.println("ENTER " + newUserName);
-                    changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
-                } catch (Exception ex) {
+        // Set up a button to get a new user name (and transmit request to the server)
+        nameAction = new AbstractAction("Set/Change User Name") {
+            public void actionPerformed(ActionEvent e) {
+                // Get the new user name and transmit to the server!
+                String newUserName = JOptionPane.showInputDialog("Please enter a user name.  Current user name: " + userName);
+                //postMessage("DEBUG: User name: " + newUserName);
 
-                }
-            } else {
-                changeUserName(newUserName);
-            }
-        }
-    };
-    
-    // changeUserName("Default"); //For debugging purposes set automatically to default
-    nameAction.putValue(Action.SHORT_DESCRIPTION,"Push this to change user name.");
-    button = new JButton(nameAction);
-    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    mainPane.add(button);
+                if (socketExists) {
+                    try {
+                        //out.println("EXITING " + username);
+                        out.println("ENTER " + newUserName);
+                        changeUserName(newUserName); // Ideally, this would be done only once the server accepts and replies back with user name
+                    } catch (Exception ex) {
 
-    // Set up a button to get a new room name (and transmit request to the server)
-    roomAction = new AbstractAction("Set/Change Room") {
-        public void actionPerformed(ActionEvent e) {
-            // Get the new room and transmit to the server!
-            String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
-            //postMessage("DEBUG: Room name: " + newRoomName);
-
-            if (socketExists) {
-                try {
-                    out.println("JOIN " + newRoomName);
-                } catch (Exception ex) {
-
+                    }
+                } else {
+                    changeUserName(newUserName);
                 }
             }
-        }
-    };
-    
-    roomAction.putValue(Action.SHORT_DESCRIPTION,"Push this to change room.");
-    button = new JButton(roomAction);
-    button.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    mainPane.add(button);
+        };
 
-    // Setup the menubar
-    setupMenuBar();
-}
+        // changeUserName("Default"); //For debugging purposes set automatically to default
+        nameAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change user name.");
+        button = new JButton(nameAction);
+        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        mainPane.add(button);
+
+        // Set up a button to get a new room name (and transmit request to the server)
+        roomAction = new AbstractAction("Set/Change Room") {
+            public void actionPerformed(ActionEvent e) {
+                // Get the new room and transmit to the server!
+                String newRoomName = JOptionPane.showInputDialog("Please enter a room.");
+                //postMessage("DEBUG: Room name: " + newRoomName);
+
+                if (socketExists) {
+                    try {
+                        out.println("JOIN " + newRoomName);
+                    } catch (Exception ex) {
+
+                    }
+                }
+            }
+        };
+
+        roomAction.putValue(Action.SHORT_DESCRIPTION, "Push this to change room.");
+        button = new JButton(roomAction);
+        button.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        mainPane.add(button);
+
+        // Setup the menubar
+        setupMenuBar();
+    }
 
     private void setupTextAreaSend(Action sendAction) {
         //System.err.println("DEBUG: Setting up TextAreaSend");
@@ -285,60 +284,60 @@ public class ChatClient extends JFrame implements Runnable {
         chatTextArea.append(message + "\n");
     }
 
-class Input extends Thread {
-    public void run() {
-        try {
-            while (socketExists) {
-                String inputString = in.readLine();
-                String[] inputStringArray = inputString.split(" ");
-                switch (inputStringArray[0]) {
-                    case "ACK": {
-                        switch (inputString.split(" ")[1]) {
-                            case "ENTER": {
-                                postMessage("You have entered as " + inputString.split(" ")[2]);
-                            }
-                            break;
-                            case "TRANSMIT": {
-                            }
-                            break;
-                            case "JOIN": {
-                                postMessage("You have entered room: " + inputString.split(" ")[2]);
+    class Input extends Thread {
+        public void run() {
+            try {
+                while (socketExists) {
+                    String inputString = in.readLine();
+                    String[] inputStringArray = inputString.split(" ");
+                    switch (inputStringArray[0]) {
+                        case "ACK": {
+                            switch (inputString.split(" ")[1]) {
+                                case "ENTER": {
+                                    postMessage("You have entered as " + inputString.split(" ")[2]);
+                                }
+                                break;
+                                case "TRANSMIT": {
+                                }
+                                break;
+                                case "JOIN": {
+                                    postMessage("You have entered room: " + inputString.split(" ")[2]);
+                                }
                             }
                         }
-                    }
-                    break;
-                    case "ENTERING": {
-                        postMessage((inputString.split(" ")[1]) + " has entered the chat");
-                    }
-                    break;
-                    case "EXITING": {
-                        postMessage((inputString.split(" ")[1]) + " has left the chat");
-                    }
-                    break;
-                    case "NEWMESSAGE": {
-                        String name = inputStringArray[1];
-                        String message = name + ": ";
-                        for (int i = 2; i < inputStringArray.length; i++) {
-                            message += inputStringArray[i] + " ";
+                        break;
+                        case "ENTERING": {
+                            postMessage((inputString.split(" ")[1]) + " has entered the chat");
                         }
-                        postMessage(message);
+                        break;
+                        case "EXITING": {
+                            postMessage((inputString.split(" ")[1]) + " has left the chat");
+                        }
+                        break;
+                        case "NEWMESSAGE": {
+                            String name = inputStringArray[1];
+                            String message = name + ": ";
+                            for (int i = 2; i < inputStringArray.length; i++) {
+                                message += inputStringArray[i] + " ";
+                            }
+                            postMessage(message);
+                        }
+                        break;
+                        default: {
+                            postMessage(inputString);
+                        }
+                        break;
                     }
-                    break;
-                    default: {
-                        postMessage(inputString);
-                    }
-                    break;
+                    System.out.println();
+                    //postMessage(inputString);
                 }
-                System.out.println();
-                //postMessage(inputString);
+
+                System.out.println("Input Reached End");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            System.out.println("Input Reached End");
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
     }
-}
-    
+
 }
